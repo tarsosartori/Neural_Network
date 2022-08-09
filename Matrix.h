@@ -12,18 +12,26 @@ class Matrix{
 		std::vector<std::vector<T>> matrix;
 		unsigned n_rows, n_cols;
 	public:
+		// constructors
 		Matrix(unsigned n_rows, unsigned n_cols); // Makes a matrix of zeros shape (n_rows, n_cols)
 		Matrix(T *M, unsigned n_rows, unsigned n_cols); // creates a matrix from a vector
-		//Matrix(Matrix& M);
 		Matrix();
 		~Matrix(); // destructor
+		
+		// useful functions
 		void printM(); // print matrix
 		unsigned getRows() const;
 		unsigned getCols() const;
 		void shape(); // print shape
 		Matrix transpose();
-		void randn(T val = 0.01);
-		void set_val(T val, unsigned i, unsigned j);
+		void randn(); // creates a matrix with random elements following the normal distribution
+		Matrix mult_ewise(Matrix B); // elementwise multiplication
+		Matrix div_ewise(Matrix B); // elementwise division
+		Matrix logM(); // return a matrix with the logs of the components
+		T norm(); // returns the norm of a matrix of shape n x 1
+		void reshape(unsigned n_rows, unsigned n_cols); // reshapes the matrix and set values to 0
+		Matrix slice_cols(int col_a = -1, int col_b = -1); // slice from column col_a until col_b - 1
+		
 		// matrix operators
 		T& operator()(const unsigned int row, const unsigned int col);
 		Matrix operator+(Matrix B);
@@ -33,12 +41,7 @@ class Matrix{
 		Matrix operator*(const T c);
 		Matrix operator+(const T c);
 		Matrix operator-(const T c);
-		Matrix mult_ewise(Matrix B);
-		Matrix div_ewise(Matrix B);
-		Matrix logM();
-		T norm();
-		void reshape(unsigned n_rows, unsigned n_cols);
-		Matrix slice_cols(int col_a = -1, int col_b = -1);
+		
 };	
 
 template<class T>
@@ -90,6 +93,11 @@ inline void Matrix<T>::reshape(unsigned n_rows, unsigned n_cols){
 
 template<class T>
 inline T Matrix<T>::norm(){
+	if(this->n_cols != 1){
+		std::cout<<"Shape must be n x 1 for using norm"<<std::endl;
+		exit(0);
+	}
+	
 	T n = 0;
 	for(int i = 0;i<this->n_rows;i++){
 		n += matrix[i][0]*matrix[i][0];	
@@ -145,7 +153,6 @@ inline Matrix<T> Matrix<T>::div_ewise(Matrix<T> B){
 	
 	return result;
 }
-
 
 
 template<class T>
@@ -274,11 +281,6 @@ inline Matrix<T> Matrix<T>::operator-(Matrix B){
 
 
 template<class T>
-inline void Matrix<T>::set_val(T val, unsigned i, unsigned j){
-	this->matrix[i][j] = val;
-}
-
-template<class T>
 inline Matrix<T> Matrix<T>::operator*(Matrix B){
 	if (getCols() != B.getRows()){
 		std::cout<<"Matrix multiplitcation mismatch"<<std::endl;
@@ -365,7 +367,7 @@ inline Matrix<T> Matrix<T>::transpose(){
 
 
 template<typename T>
-inline void Matrix<T>::randn(T val){
+inline void Matrix<T>::randn(){
 	unsigned i, j, k = 0;
 	srand(time(0));
 	
@@ -388,7 +390,7 @@ inline void Matrix<T>::randn(T val){
 	
 	for ( i=0; i<this->n_rows; i++){
 		for( j=0; j<this->n_cols;j++){
-			this->matrix[i][j] = v[i*this->n_cols+j] * val;
+			this->matrix[i][j] = v[i*this->n_cols+j];
 		}
 	}
 

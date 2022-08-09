@@ -1,4 +1,4 @@
-#include "Dense_Layer.h"
+#include "dense_layer.h"
 #include<tuple>
 #include<stdio.h>
 #include <bits/stdc++.h>
@@ -149,7 +149,6 @@ inline void network<T>::train(Matrix<T>& X_, Matrix<T>& y_, T learning_rate, uns
 
 }
 
-
 template<class T>
 inline void network<T>::forward_prop(Matrix<T>& input, int col_a, int col_b){
 			
@@ -197,17 +196,15 @@ inline Matrix<T> network<T>::linear_activation_backward(Matrix<T>& dAl, int laye
 	//dA_prev = dJ/dA_prev = W_l^T * dZ_l 
 	//dZ_l = dA_l .* g'(Z_l)
 	
-	Matrix<T> dZl, dWl, dA_prev, Al_prev;
+	Matrix<T> dZl, dWl, dA_prev, Al_prev, Wl, Zl;
 	Matrix<T> dbl(dAl.getRows(),1);
-	Matrix<T> Wl;
-	Matrix<T> Zl;
 	std::string activation = this->layers[layer]->get_activation();
-	double m;
+	T m;
 	
-	if(col_a == -1 && col_b == -1){
+	if(col_a == -1 && col_b == -1){ // No batch
 		Zl = this->caches[5*layer+3];
 		Wl = this->layers[layer]->get_W();
-		m = (double) Zl.getCols();
+		m = (T) Zl.getCols();
 		
 		if(layer > 0){
 			Al_prev = this->caches[5*(layer-1) + 4];
@@ -215,11 +212,11 @@ inline Matrix<T> network<T>::linear_activation_backward(Matrix<T>& dAl, int laye
 			Al_prev = X;
 		}
 		
-	}else{
+	}else{ // With batch
 		Wl = this->layers[layer]->get_W();
 		Zl = this->caches[5*layer+3].slice_cols(col_a, col_b);
 		
-		m = (double) Zl.getCols();
+		m = (T) Zl.getCols();
 		
 		if(layer > 0){
 			Al_prev = this->caches[5*(layer-1) + 4].slice_cols(col_a, col_b);
@@ -228,7 +225,6 @@ inline Matrix<T> network<T>::linear_activation_backward(Matrix<T>& dAl, int laye
 		}
 	
 	}
-	
 	
 	if(activation == "relu"){
 		dZl = dAl.mult_ewise(d_relu(Zl));
@@ -250,9 +246,6 @@ inline Matrix<T> network<T>::linear_activation_backward(Matrix<T>& dAl, int laye
 		}
 	}
 	dbl = dbl * (1/m);
-	
-	//gradient_clipping(dWl);
-	//gradient_clipping(dbl);
 	
 	this->caches[5*layer] = dWl;
 	this->caches[5*layer+1] = dbl;
@@ -279,7 +272,7 @@ inline void network<T>::backward_prop(Matrix<T>& X, Matrix<T>& y, std::string co
 	
 
 	if (cost_function == "cross_entropy"){
-			//dAL = ((y.div_ewise(caches[5*(L-1)+4])) - ((y * -1 + 1).div_ewise(caches[5*(L-1)+4]*-1 + 1))) * -1;
+	
 			dAL = y.div_ewise(AL) * -1;
 		
 		}else if(cost_function == "mse"){
@@ -290,19 +283,19 @@ inline void network<T>::backward_prop(Matrix<T>& X, Matrix<T>& y, std::string co
 		
 			std::cout<<"Cost function should be 'cross_entropy' or 'mse'"<<std::endl;
 			exit(0);
-		
+			
 		}
 	
-		Matrix<T> dA_prev = this->linear_activation_backward(dAL, L - 1, X, col_a, col_b);
-		
-		for(int i = L - 2; i >= 0; i--){
-			//gradient_clipping(dA_prev);
-			dA_prev = this->linear_activation_backward(dA_prev, i, X, col_a, col_b);	
-		}
+	Matrix<T> dA_prev = this->linear_activation_backward(dAL, L - 1, X, col_a, col_b);
+	
+	for(int i = L - 2; i >= 0; i--){
+	
+		dA_prev = this->linear_activation_backward(dA_prev, i, X, col_a, col_b);	
+	
+	}
 
 	
 }
-
 
 template<class T>
 inline void network<T>::gradient_clipping(Matrix<T>& dA){
@@ -334,7 +327,6 @@ inline T network<T>::compute_cost(Matrix<T>& AL, Matrix<T>& y, std::string cost_
 	
 	if(cost_function == "cross_entropy"){
 		
-	//C = y.mult_ewise(AL.logM()) + (y*-1 + 1)*((AL*-1 + 1).logM());
 		C = y.mult_ewise(AL.logM());
 			
 		for(int j=0;j<y.getCols();j++){
@@ -408,7 +400,8 @@ inline void network<T>::add_Dense(unsigned neurons, std::string activation, T in
 	}
 	
 	Matrix<T> W(neurons, columns), b(neurons, 1);
-	W.randn(initialize_weights);
+	W.randn();
+	W = W * initialize_weights;
 	
 	Dense_Layer<T> *DL = new Dense_Layer<T>(W, b, activation);
 	layers.push_back(DL);		
