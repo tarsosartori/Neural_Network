@@ -31,6 +31,7 @@ class Matrix{
 		T norm(); // returns the norm of a matrix of shape n x 1
 		void reshape(unsigned n_rows, unsigned n_cols); // reshapes the matrix and set values to 0
 		Matrix slice_cols(int col_a = -1, int col_b = -1); // slice from column col_a until col_b - 1
+		Matrix filter_category();
 		
 		// matrix operators
 		T& operator()(const unsigned int row, const unsigned int col);
@@ -43,6 +44,29 @@ class Matrix{
 		Matrix operator-(const T c);
 		
 };	
+
+template<class T>
+inline Matrix<T> Matrix<T>::filter_category(){ // get the columns from [col_a, col_b - 1]
+	Matrix<T> bin(n_rows,n_cols);
+	T max_val;
+	
+	for(int j=0;j<n_cols;j++){
+		max_val = matrix[0][j];
+		for(int i=1;i<n_rows;i++){
+			if(matrix[i][j] > max_val){
+				max_val = matrix[i][j];
+			}
+		}
+		for(int i=0;i<n_rows;i++){
+			if(matrix[i][j] == max_val){
+				bin(i,j) = 1;
+			}else{
+				bin(i,j) = 0;
+			}
+		}
+	}
+	return bin;
+}
 
 template<class T>
 inline Matrix<T> Matrix<T>::slice_cols(int col_a, int col_b){ // get the columns from [col_a, col_b - 1]
@@ -137,12 +161,20 @@ inline Matrix<T> Matrix<T>::div_ewise(Matrix<T> B){
 	if(B.getRows()==this->n_rows && B.getCols() ==  this->n_cols){
 		for(int i=0;i<this->n_rows;i++){
 			for(int j=0;j<this->n_cols;j++){
+				if(B(i,j) == 0){
+					B(i,j) = 0.000000001;
+					std::cout<<"singularity"<<std::endl;
+				}
 				result(i,j) = this->matrix[i][j]/B(i,j);
 			}
 		}
 	}else if(B.getRows() == this->n_rows && B.getCols() == 1){
 		for(int i=0;i<this->n_rows;i++){
 			for(int j=0;j<this->n_cols;j++){
+				if(B(i,j) == 0){
+					B(i,0) = 0.000000001;
+					std::cout<<"singularity"<<std::endl;
+				}
 				result(i,j) = this->matrix[i][j]/B(i,0);
 			}
 		}

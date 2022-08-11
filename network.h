@@ -14,7 +14,7 @@ class network{
 	// y (n_outputs, m_samples)
 	
 	private:
-		std::vector<Dense_Layer<T>*> layers; // stores the NN layers
+		std::vector<Dense_Layer<T>*> layers; // stores the NN layers	
 		std::vector<Matrix<T>> caches; // stores the gradients for each layer, linear and non-linear activations. dW, db, dA, A, Z
 		unsigned input_size;
 		
@@ -33,8 +33,32 @@ class network{
 		Matrix<T> linear_activation_backward(Matrix<T>& dAl, int layer, Matrix<T>& X, int col_a= -1, int col_b = -1);
 		T compute_cost(Matrix<T>& AL, Matrix<T>& y, std::string cost_function);
 		void gradient_clipping(Matrix<T>& dA);
+		void accuracy(Matrix<T>& y_real, Matrix<T>& y_pred);
 };
 
+template<class T>
+inline void network<T>::accuracy(Matrix<T>& y_real, Matrix<T>& y_pred){
+	
+	T acc = 0;
+	T max_val;
+	Matrix<T> bin = y_pred.filter_category();
+
+	bool cond;
+	for(int j=0;j<y_real.getCols();j++){
+		cond = true;
+		for(int i=0;i<y_real.getRows();i++){
+			if(y_real(i,j) != bin(i,j)){
+				cond = false;
+			}
+		}
+		if(cond){
+			acc += 1;
+		}
+	}
+	
+	std::cout<<"Accuracy = "<<100*acc/y_real.getCols()<<"%"<<std::endl;
+
+}
 
 template<class T>
 inline void network<T>::train(Matrix<T>& X_, Matrix<T>& y_, T learning_rate, unsigned epochs, std::string cost_function, int batch, bool shuffle, bool print_cost){
@@ -247,10 +271,15 @@ inline Matrix<T> network<T>::linear_activation_backward(Matrix<T>& dAl, int laye
 	}
 	dbl = dbl * (1/m);
 	
+	//gradient_clipping(dWl);
+	//gradient_clipping(dbl);
+	
 	this->caches[5*layer] = dWl;
 	this->caches[5*layer+1] = dbl;
 	
 	dA_prev = Wl.transpose()*dZl;
+	
+	//gradient_clipping(dA_prev);
 	
 	return dA_prev;
 }
@@ -272,7 +301,7 @@ inline void network<T>::backward_prop(Matrix<T>& X, Matrix<T>& y, std::string co
 	
 
 	if (cost_function == "cross_entropy"){
-	
+			//dAL = ((y.div_ewise(AL)) - ((y * -1 + 1).div_ewise(AL*-1 + 1))) * -1;
 			dAL = y.div_ewise(AL) * -1;
 		
 		}else if(cost_function == "mse"){
@@ -327,14 +356,13 @@ inline T network<T>::compute_cost(Matrix<T>& AL, Matrix<T>& y, std::string cost_
 	
 	if(cost_function == "cross_entropy"){
 		
-		C = y.mult_ewise(AL.logM());
+		C = y.mult_ewise(AL.logM())*-1;
 			
 		for(int j=0;j<y.getCols();j++){
 			for(int i =0 ;i<y.getRows();i++){
 				cost += C(i,j);	
 			}
 		}
-		cost = cost*-1;
 	}
 			 
 	else if(cost_function == "mse"){
