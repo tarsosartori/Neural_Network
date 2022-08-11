@@ -4,51 +4,16 @@
 * [General infos](#general-info)
 * [Technologies](#technologies)
 * [Setup](#setup)
-* [Data Recovery](#data-recovery)
+* [Remarks](#Remarks)
 
 ## General Info
- This program simulates rotation movements through a set of three gimbals connected, the inner, the middle, and the outer gimbal. Gimbals are like frames that can rotate independently. The inner gimbal may represent any object rotating in three dimensions, such as a car, a rocket, an airplane, a satellite, or even a hand. The composition of three independent rotations can reach any orientation in space. To achieve this, the program has been made using quaternions to represent the orientation and the quaternions kinematics to produce the movement. At the end of each simulation, the program shows the final quaternion, i.e., the orientation of the inner gimbal with respect to the inertial reference frame, as well the Euler angles associated using the convention 321. 
+This program is a simple framework to create and train neural networks in C/C++. It was inspired by the Keras sequential model framework with dense layers for Python. Inside the main.cpp program you will find examples of how to use the framework to create sequential models and to train them for classification and regression problems. The theory was based on the content provided by Andrew Ng. course on Coursera, "Neural Networks and Deep Learning". The framework can train neural networks through the gradient descent optimizer, where the gradients are calculated through forward and subsequent backward propagation algorithms. 
+
  ## Technologies
- The technologies used to build this program were:
- * Python 3.9
- * Numpy
- * Scipy
- * Matplotlib
- * Tkinter
+ This program was made using C/C++.
  
  ## Setup
- To run this project you need to execute the python script named "program_gimbals.py". For this you need to have installed Python 3.9 or more recent versions. To check your python version open a linux terminal or the cmd for Windows and type:
- ```
- python3 -V
- ```
- To install pip:
- ```
- sudo apt install pip3
-```
- And the libraries numpy, scipy, matplotlib:
- ```
- pip3 install matplotlib=3.4.3
- pip3 install numpy
- pip3 install scipy
- sudo apt-get install python3-tk 
- ```
- To run the program, go to the folder where is the script "program_gimbals.py" and execute:
- ```
- python3 program_gimbals.py
- ```
- You are going to see the two figures:
+ It is possible to implement and train regression and classification models using neural networks. A class called "matrix" was made intended to simulate the NumPy library functionalities in Python. The dataset must be converted into matrix objects to feed the networks. Following the notation though by Andrew Ng., the input dataset matrix needs to have the dimensions (number of features, number of samples), e.g., each feature of your model must be in the lines of this matrix and the samples are spread over the columns. The same for the output dataset, (number of outputs, number of samples). To create the sequential model, you can instantiate an object from the network class, passing as an argument the number of features of your input dataset, then use the function "add_Dense" passing as arguments the number of neurons you want, the activation function (sigmoid, tanh, softmax, relu or None = Linear). After it, you use the function "train" passing as arguments the input and output datasets, the number of epochs, and the batch size to use and also if you want to shuffle the data. To test your model you can use the function "predict" that will use the last weights found in the training. 
  
- 
-![Data](./images/window.PNG)
-
-
-You can choose the parameters for each simulation and click on run. You can make as many as you want. Just a disclaimer, neither increase the sample time nor decrease the simulation time so much. If you do, the simulation can be harmed due to errors in the matrix exponentials it calculates. 
-
-
-![Gimbals system](./images/gimbal.PNG)
-
-
-The gimbals will rotate accordingly. In this figure, the outer gimbal is in blue, the middle is in green and the inner is in red. For each run, the program will show the final quaternion and the Euler angles for the inner gimbal in the terminal. 
-
-## Data Recovery
-To retrieve all the quaternions calculated during the simulation, you can copy the data stored in the variable quat1. This variable is a matrix with five columns. In the first column is the sample time of the simulation. The other four columns are the quaternion components according to the convention 0123, where the first component is the real part and the others are the imaginary part. The Euler angles can be recovered through the Euler321rad variable, which contains the angles for roll, pitch, and yaw in each column in radians.
+ ## Remarks
+ It is an experimental program to consolidate the knowledge of basic neural networks theory. Your data should be already normalized and pre-processed before using it. The program needs to be improved yet, with new optimization algorithms, optimizations of the classes, regularization methods, and pre and post-processing functions. 
